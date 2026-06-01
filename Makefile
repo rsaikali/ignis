@@ -1,6 +1,6 @@
 # Ignis -- NILM/HA lab. Keep this simple (workspace rule).
 .PHONY: help install lint test fmt up down logs ingest clean \
-        train-deps train metal-deps backfill admin eval ship
+        train-deps train metal-deps backfill admin eval ship deploy retrain
 
 UV := uv
 COMPOSE := docker compose
@@ -59,6 +59,9 @@ ship: ## rsync champion.keras (+ sidecars) to the Pi models volume
 deploy: ## Prod deploy on the Pi (run by CD): build + up db/ingest/publish
 	$(COMPOSE) --profile prod up -d --build
 	$(COMPOSE) ps
+
+retrain: ## On-device retrain pass (train -> eval -> auto-promote). For cron.
+	$(COMPOSE) --profile train run --rm train
 
 metal-deps: ## OPT-IN: add the macOS Metal GPU plugin (only if TF-compatible)
 	@echo "WARN: tensorflow-metal lags TF releases and may break import."

@@ -61,5 +61,25 @@ services:
       timescaledb:
         condition: service_healthy
 
+  # Ephemeral nightly retrain job (cron -> `docker compose run --rm train`).
+  # Same worker image, but models is READ-WRITE so it can promote a new
+  # champion. Not started by `up` (profile "train"); exits after one pass.
+  # publish reloads champion.keras on its next cycle -- no restart needed.
+  train:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    profiles: ["train"]
+    env_file: .env
+    environment:
+      LOCAL_DB_HOST: timescaledb
+      NILM_MODEL_PATH: /app/models
+    volumes:
+      - ${NILM_MODEL_PATH_HOST:-./models}:/app/models
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    command: ["python", "-m", "ignis.ops.retrain", "--train-days", "30", "--eval-days", "3"]
+
 volumes:
   timescale_data:
