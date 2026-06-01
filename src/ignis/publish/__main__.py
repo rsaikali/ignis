@@ -30,7 +30,9 @@ def main() -> None:
     ap = argparse.ArgumentParser(prog="publish")
     ap.add_argument("--once", action="store_true", help="Single cycle then exit")
     ap.add_argument("--interval", type=int, default=60, help="Seconds between cycles")
-    ap.add_argument("--window-minutes", type=int, default=60, help="Aggregate window to disaggregate")
+    # Needs >= sequence_length aligned ticks (99 x 30s = 50min minimum); use a
+    # wider window so live gaps still leave enough points.
+    ap.add_argument("--window-minutes", type=int, default=180, help="Aggregate window to disaggregate")
     args = ap.parse_args()
 
     if args.once:
