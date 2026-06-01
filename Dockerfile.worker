@@ -12,14 +12,15 @@ WORKDIR /app
 # Install the heavy deps (tensorflow etc.) WITHOUT the package source, so a code
 # change doesn't reinstall TF. A minimal README + empty package satisfies the
 # build backend for dependency resolution.
-COPY pyproject.toml README.md ./
+COPY pyproject.toml ./
 RUN --mount=type=cache,target=/root/.cache/pip \
-    mkdir -p src/ignis && touch src/ignis/__init__.py \
+    mkdir -p src/ignis && touch src/ignis/__init__.py && echo "stub" > README.md \
     && pip install --upgrade pip \
     && pip install ".[engine,training]" \
-    && rm -rf src
+    && rm -rf src README.md
 
 # --- code layer: fast (deps already installed) ------------------------------
+COPY README.md ./
 COPY src/ ./src/
 RUN --mount=type=cache,target=/root/.cache/pip pip install --no-deps .
 
