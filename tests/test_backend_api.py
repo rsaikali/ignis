@@ -36,6 +36,29 @@ def test_truth_route(monkeypatch):
     assert r.json()["appliances"]["television"]["on"] is True
 
 
+def test_disaggregation_route(monkeypatch):
+    from ignis.backend import dbapi
+
+    latest = {
+        "updated_at": "2026-06-01T17:00:00+00:00",
+        "snapshot": {"ts": "2026-06-01T17:00:00Z", "total_w": 320.0, "appliances": {"television": 0.0}},
+        "meta": {"version": "ignis_gru_x", "metrics": {"television": {"state_f1": 0.701}}},
+    }
+    monkeypatch.setattr(dbapi, "latest_disaggregation", lambda: latest)
+    r = TestClient(app).get("/api/disaggregation")
+    assert r.status_code == 200
+    assert r.json()["snapshot"]["total_w"] == 320.0
+    assert r.json()["meta"]["version"] == "ignis_gru_x"
+
+
+def test_disaggregation_route_404_when_empty(monkeypatch):
+    from ignis.backend import dbapi
+
+    monkeypatch.setattr(dbapi, "latest_disaggregation", lambda: None)
+    r = TestClient(app).get("/api/disaggregation")
+    assert r.status_code == 404
+
+
 def test_truth_route_default_window(monkeypatch):
     from ignis.backend import dbapi
 

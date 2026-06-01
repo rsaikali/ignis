@@ -35,7 +35,27 @@ Broker: the Pi's mosquitto (LAN), auth required (`allow_anonymous false`).
 For data MQTT-retained can't carry (history is a series, not a last value):
 
 - `GET /api/health` → `{ ok, models, ... }`
-- `GET /api/models` → current registry (name, trained_at, gate pass/fail).
+- `GET /api/models` → current registry. Each entry carries `metrics`
+  (per-appliance scores in the same shape as the MQTT meta):
+  ```json
+  [ { "name": "ignis_gru_<ts>", "trained_at": "<ISO8601>",
+      "predictable": bool, "gate_passed": ["<key>", ...], "gate_failed": [...],
+      "metrics": { "<key>": { "state_f1": <0..1>,
+                              "energy_error": <float|null>,
+                              "passes_gate": bool }, ... } }, ... ]
+  ```
+- `GET /api/disaggregation` → the latest live disaggregation over HTTP (same
+  content as the retained MQTT `nilm/disaggregation` + `nilm/_meta/model`, for
+  consumers that don't speak MQTT). `404` until the first publish cycle:
+  ```json
+  { "updated_at": "<ISO8601>",
+    "snapshot": { "ts": "<ISO8601>", "total_w": <float>,
+                  "appliances": { "<key>": <power_w>, ... } },
+    "meta": { "version": "...", "trained_at": "...",
+              "metrics": { "<key>": { "state_f1": <0..1>,
+                                      "energy_error": <float>,
+                                      "passes_gate": 0|1 }, ... } } }
+  ```
 - `GET /api/models/history` → **one point per nightly retrain** (the evolution
   curve):
   ```json
@@ -55,7 +75,9 @@ For data MQTT-retained can't carry (history is a series, not a last value):
 ## The three surfaces
 
 ### A. Hero — "NILM vs HA" (live diff)
-Sources: MQTT `nilm/disaggregation` + API `/api/truth/recent`.
+Sources (HTTP-only path): `GET /api/disaggregation` (NILM prediction) +
+`GET /api/truth/recent` (smart-plug truth). Or `nilm/disaggregation` over MQTT
+if you subscribe.
 Show: Linky aggregate → NILM disaggregation **vs** smart-plug ground truth, per
 appliance, with the gap. This is the project's central idea: guess per-appliance
 power from one meter, verified against truth.

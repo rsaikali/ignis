@@ -129,6 +129,21 @@ def model_detail(name: str) -> str:
     return _page(f"Modele {name}", body)
 
 
+def _entry_metrics(entry) -> dict:
+    """Per-appliance scores {key: {state_f1, energy_error, passes_gate}} from
+    the model's comparison, in the shape the portfolio expects."""
+    if not entry.comparison:
+        return {}
+    out: dict[str, dict] = {}
+    for key, m in entry.comparison.get("appliances", {}).items():
+        out[key] = {
+            "state_f1": m.get("state_f1"),
+            "energy_error": m.get("energy_error"),
+            "passes_gate": bool(m.get("passes_gate")),
+        }
+    return out
+
+
 @app.get("/api/models")
 def api_models() -> JSONResponse:
     entries = discover()
@@ -142,6 +157,7 @@ def api_models() -> JSONResponse:
                 "gate_failed": e.gate_failed,
                 "has_report": e.report is not None,
                 "has_comparison": e.comparison is not None,
+                "metrics": _entry_metrics(e),
             }
             for e in entries
         ]
@@ -154,6 +170,23 @@ def api_models_history(limit: int = 500) -> JSONResponse:
     from .dbapi import models_history
 
     return JSONResponse(models_history(limit=limit))
+
+
+@app.get("/api/disaggregation")
+def api_disaggregation() -> JSONResponse:
+    """Latest NILM disaggregation snapshot + model meta over HTTP (surface A).
+
+    Same content as the retained MQTT nilm/disaggregation + nilm/_meta/model,
+    for consumers that don't speak MQTT. 404 until the first publish cycle.
+    """
+    from fastapi.responses import JSONResponse as _JR
+
+    from .dbapi import latest_disaggregation
+
+    latest = latest_disaggregation()
+    if latest is None:
+        return _JR({"detail": "no disaggregation yet"}, status_code=404)
+    return JSONResponse(latest)
 
 
 @app.get("/api/truth/recent")

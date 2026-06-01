@@ -68,6 +68,24 @@ def test_api_models_json(client):
     assert body[0]["predictable"] is True
 
 
+def test_api_models_carries_metrics(client):
+    c, d = client
+    _model(
+        d,
+        "m1",
+        report={"period_end": "2026-06-01", "appliances": {}},
+        comparison={
+            "appliances": {"television": {"state_f1": 0.701, "energy_error": 0.82, "passes_gate": False}},
+            "passed": [],
+            "failed": ["television"],
+        },
+        scalers=True,
+    )
+    body = c.get("/api/models").json()
+    assert body[0]["metrics"]["television"]["state_f1"] == 0.701
+    assert body[0]["metrics"]["television"]["passes_gate"] is False
+
+
 def test_model_detail_with_comparison(client):
     c, d = client
     _model(

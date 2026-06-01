@@ -107,4 +107,44 @@ async def publish_once(window_minutes: int = 60) -> None:
         pub = MqttPublisher(client)
         await pub.publish_snapshot(snapshot)
         await pub.publish_meta(meta)
+
+    # Also persist the latest snapshot + meta so the backend can serve them over
+    # HTTP (a portfolio consumer that doesn't speak MQTT). Best-effort.
+    try:
+        _persist_latest(snapshot, meta)
+    except Exception as exc:  # noqa: BLE001 -- never let persistence break publish
+        logger.warning("Could not persist latest disaggregation: {}", exc)
+
     logger.info("Published snapshot ({} appliances) + meta {}", len(snapshot.appliances), meta.version)
+
+
+_LATEST_DDL = """
+CREATE TABLE IF NOT EXISTS disaggregation_latest (
+    id          INTEGER PRIMARY KEY,
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    snapshot    JSONB NOT NULL,
+    meta        JSONB NOT NULL
+);
+"""
+
+_LATEST_UPSERT = """
+INSERT INTO disaggregation_latest (id, updated_at, snapshot, meta)
+VALUES (1, now(), %(snapshot)s, %(meta)s)
+ON CONFLICT (id) DO UPDATE SET updated_at = now(), snapshot = EXCLUDED.snapshot, meta = EXCLUDED.meta;
+"""
+
+
+def _persist_latest(snapshot, meta) -> None:
+    """Upsert the single latest snapshot+meta row for the HTTP API."""
+    import json
+
+    import psycopg
+
+    with psycopg.connect(settings.database_url) as conn:
+        with conn.cursor() as cur:
+            cur.execute(_LATEST_DDL)
+            cur.execute(
+                _LATEST_UPSERT,
+                {"snapshot": json.dumps(snapshot.payload()), "meta": json.dumps(meta.payload())},
+            )
+        conn.commit()

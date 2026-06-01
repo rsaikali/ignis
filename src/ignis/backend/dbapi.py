@@ -63,6 +63,31 @@ def models_history(limit: int = 500) -> list[dict]:
     return out
 
 
+def latest_disaggregation() -> dict | None:
+    """The most recent disaggregation snapshot + meta (HTTP surface A).
+
+    publish upserts a single row; returns ``{updated_at, snapshot, meta}`` or
+    None if no cycle has run / the table doesn't exist yet.
+    """
+    import psycopg
+
+    with psycopg.connect(settings.database_url) as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass('public.disaggregation_latest');")
+            if cur.fetchone()[0] is None:
+                return None
+            cur.execute("SELECT updated_at, snapshot, meta FROM disaggregation_latest WHERE id = 1;")
+            row = cur.fetchone()
+    if row is None:
+        return None
+    updated_at, snapshot, meta = row
+    return {
+        "updated_at": updated_at.isoformat() if updated_at else None,
+        "snapshot": snapshot,  # JSONB -> dict
+        "meta": meta,
+    }
+
+
 def truth_recent(window_seconds: int) -> dict:
     """Latest per-appliance HA truth (power + on/off) within the window."""
     import psycopg
