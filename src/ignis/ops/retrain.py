@@ -48,6 +48,11 @@ def run(train_days: int, eval_days: float, epochs: int | None, keep: int) -> Non
         logger.info("PROMOTED {} to champion (score {} > {})", challenger, score, champ_score)
     else:
         logger.info("Kept current champion (challenger {} <= {})", score, champ_score)
+
+    # Log the run to model_runs so the evolution history survives pruning.
+    from ignis.eval.runlog import log_run
+
+    log_run(comparison.to_dict(), train_days=train_days, promoted=promoted)
     prune_challengers(keep=keep)
 
 
