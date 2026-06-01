@@ -91,5 +91,32 @@ oven is hard and here's the plan". The latter signals maturity.
   registry; add `/api/models/history` from `model_runs` and `/api/truth/recent`
   from the `appliance_power`/`appliance_onoff` views).
 
-Until then, the portfolio can ship A + B from MQTT alone (already live) and add
-C once the history API is up.
+**Status:** the `model_runs` table + `log_run` (written by the nightly retrain)
+and both API endpoints exist. History is empty until the first cron retrain logs
+a run (then the curve grows nightly); truth returns live per-plug data now.
+
+## Where the backend runs
+
+The `backend` FastAPI is not yet a prod compose service. Two options for the
+portfolio to reach it (portfolio's call, not Ignis's):
+
+- **Add a `backend` service** to the Pi compose, port bound to the LAN — the
+  portfolio pulls `http://<pi-lan-ip>:8001/api/...`. Clean boundary.
+- **Portfolio reads the shared resources directly** — it already can reach the
+  LAN-exposed TimescaleDB (a `TimescaleSource` adapter on the `model_runs` /
+  truth views) and the MQTT broker. No Ignis HTTP layer, but couples the
+  portfolio to the DB schema.
+
+MQTT (surfaces A + B) is live now regardless. Surface C needs one of the above.
+
+## Quick reference for the portfolio dev
+
+- Broker: `<pi-lan-ip>:1883`, auth required. Topics `nilm/disaggregation`,
+  `nilm/_meta/model` (both retained).
+- DB (if direct): `<pi-lan-ip>:5432`, db `ignis`. Views `appliance_power`,
+  `appliance_onoff`, `linky_realtime`; table `model_runs`.
+- API (if backend service): `/api/models`, `/api/models/history`,
+  `/api/truth/recent?window=15m`, `/api/health`.
+- Appliance keys: `four, lave_linge, lave_vaisselle, pc, television, smart_plug`.
+- Current scores (will change as retrains run): tv ~0.70, pc ~0.42, rest 0.0
+  (data-limited — see `docs/nilm-imbalance.md`).

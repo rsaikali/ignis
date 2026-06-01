@@ -62,6 +62,27 @@ services:
       timescaledb:
         condition: service_healthy
 
+  # Admin console + portfolio API (history + truth). Light image (no TF).
+  # Port bound to the LAN so the portfolio can pull it; localhost by default.
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    image: ignis-backend
+    restart: unless-stopped
+    profiles: ["prod"]
+    env_file: .env
+    environment:
+      LOCAL_DB_HOST: timescaledb
+      NILM_MODEL_PATH: /app/models
+    volumes:
+      - ${NILM_MODEL_PATH_HOST:-./models}:/app/models:ro
+    ports:
+      - "${API_BIND_ADDR:-127.0.0.1}:8001:8001"
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
   # Ephemeral nightly retrain job (cron -> `make retrain`). Reuses the already
   # built ignis-worker image (no rebuild), but mounts models READ-WRITE so it
   # can promote a new champion. Not started by `up` (profile "train"); exits
