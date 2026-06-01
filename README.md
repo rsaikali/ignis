@@ -5,12 +5,19 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](pyproject.toml)
 
-**NILM / Home Assistant lab.** Ignis guesses **per-appliance power** from a
-single whole-house meter (a Linky smart meter), and checks itself against the
-**real** per-appliance consumption that smart plugs already report to Home
-Assistant. HA is both the input (aggregate) and the ground truth — so the
-labels are free and the model can be trained *self-supervised* and graded
-honestly (per-appliance F1 + energy error).
+**NILM / Home Assistant lab.**
+
+> **NILM** (Non-Intrusive Load Monitoring) = figuring out *which appliance
+> consumes what* from a **single** whole-house meter, instead of metering each
+> appliance. One number in (total power), a breakdown out (oven, washer, TV…).
+
+Ignis does NILM from a **Linky** smart-meter aggregate and checks itself against
+the **real** per-appliance consumption that smart plugs already report to **Home
+Assistant**. HA is both the input (the aggregate) and the ground truth — so the
+labels are **free** and the model is trained *self-supervised* and graded
+**honestly** (per-appliance F1 + energy error vs HA). That HA-vs-NILM diff is the
+whole point: a model is only "good" when it matches what the plugs actually
+measured.
 
 Deep-learning engine: Seq2Point multi-output (GRU/LSTM + attention,
 TensorFlow/Keras). The full loop runs unattended:
@@ -107,8 +114,9 @@ A nightly cron retrains on-device. Full guide: [`docs/deploy.md`](docs/deploy.md
 
 - **MQTT** (retained): `nilm/disaggregation` (per-appliance W snapshot) and
   `nilm/_meta/model` (active model + per-appliance F1/energy-error vs HA).
-- **HTTP API**: `/api/models/history` (accuracy over time), `/api/truth/recent`
-  (live per-plug truth), `/api/models`, `/api/health`.
+- **HTTP API**: `/api/disaggregation` (latest NILM prediction + scores),
+  `/api/truth/recent` (live per-plug truth), `/api/models/history` (accuracy
+  over time), `/api/models`, `/api/health`.
 - See [`docs/portfolio-contract.md`](docs/portfolio-contract.md) for the consumer
   contract.
 
