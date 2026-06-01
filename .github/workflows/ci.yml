@@ -24,8 +24,9 @@ jobs:
       - name: Set up Python
         run: uv venv --python 3.12
 
-      - name: Install dev deps
-        run: uv pip install -e ".[dev]"
+      - name: Install dev + engine deps
+        # engine brings psycopg/numpy that DB modules import at top level.
+        run: uv pip install -e ".[dev,engine]"
 
       - name: Ruff lint
         run: uv run ruff check .
