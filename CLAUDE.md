@@ -112,12 +112,22 @@ git ls-tree -r --name-only 457cc1b   # full file list
 
 Owner expands features before finishing the previous one — **flag scope creep**. Ignis already holds a lot (engine + ingest + eval + 2 output surfaces + UI). Keep tight module boundaries. Do not let Ignis absorb the portfolio widget or re-grow into the dropped LLM project.
 
-## Immediate next steps (where we are)
+## Where we are (2026-06-01)
 
-1. Adapt harvested `nilm/config.py` (pydantic-settings, repoint DB) + migrate logging→loguru as you touch files.
-2. Scaffold `ha_ingest/` (decide MQTT-push vs API-pull first), `eval/`, `publish/`.
-3. Add `pyproject.toml` (uv) + a native-macOS training extra (`tensorflow-metal`) + a `docker-compose.yml` for prod (inference + lab; NO training service).
-4. Later: recover HA integration + cards from git `457cc1b`.
+**LIVE in production on the Pi.** The full loop runs autonomously:
+`HA → ha_ingest → TimescaleDB → publish (MQTT) + nightly on-device retrain → champion → portfolio API`.
+
+- Public repo `github.com/rsaikali/ignis` (MIT, src layout `src/ignis/`), CI/CD green.
+- Prod = 4 compose services on the Pi (timescaledb, ha_ingest, publish, backend), profile `prod`.
+- On-device retrain: cron `17 3 * * *` (train→eval→promote→log model_runs). Pi 4 ~40min/pass. Mac optional (fast dev).
+- Portfolio interface ready (`docs/portfolio-contract.md`): MQTT live+scores + history/truth API.
+- Deploy + ops details: `docs/deploy.md`. The core ML story: `docs/nilm-imbalance.md`.
+
+**Open / next:**
+1. **Accuracy** — only tv (~0.70) and pc (~0.42) clear-ish the gate; four/lave_vaisselle/smart_plug are data-limited (~2% ON over 30d). The nightly retrain accrues rare-class labels over time; revisit per-cycle val split / longer windows if needed.
+2. **Portfolio** — build the 3 surfaces from the contract (separate repo, `../portfolio.saikali.fr`).
+3. **Dette**: TF ARM build ~11min/deploy (→ ghcr pre-build); `make ship` Pi defaults (pass overrides); ROTATE the MQTT password (it transited a chat).
+4. Later: recover HA integration + cards (skeleton in local `.ha-pattern-ref/`, gitignored; from old git `457cc1b`).
 
 ## Related repos in the workspace
 
