@@ -1,0 +1,23 @@
+# Inference + publish worker (loads champion.keras -> MQTT).
+# Heavier than the ha_ingest image: needs TensorFlow (CPU) + the engine.
+# Training never runs here (native macOS); this only does inference.
+FROM python:3.12-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+WORKDIR /app
+
+# Engine + the CPU TensorFlow stack. The `training` extra brings tensorflow
+# (CPU on linux) + numpy/sklearn used by inference (scalers, predict).
+COPY pyproject.toml README.md ./
+COPY nilm/ ./nilm/
+COPY ha_ingest/ ./ha_ingest/
+COPY eval/ ./eval/
+COPY publish/ ./publish/
+COPY training/ ./training/
+RUN pip install --upgrade pip && pip install ".[engine,training]"
+
+# Champion model is provided at runtime via the models volume (rsynced by
+# `make ship`). NILM_MODEL_PATH points there in compose.
+CMD ["python", "-m", "publish", "--interval", "60"]

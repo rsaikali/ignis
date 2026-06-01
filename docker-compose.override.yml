@@ -1,0 +1,11 @@
+# Dev override (applied automatically by `docker compose`).
+# Runs ha_ingest from the live source tree so edits don't require a rebuild.
+
+services:
+  ha_ingest:
+    build: .
+    volumes:
+      - ./nilm:/app/nilm
+      - ./ha_ingest:/app/ha_ingest
+    environment:
+      LOGURU_LEVEL: DEBUG

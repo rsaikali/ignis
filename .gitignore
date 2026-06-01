@@ -1,0 +1,18 @@
+# Local model artifacts at repo root (LLM weights, exported .keras). Anchored
+# to root so it does NOT swallow the engine package nilm/nilm/models/.
+/models/
+frontend/ignis-card/node_modules/
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.claude/settings.local.json
+
+.rtk/
+
+# Local reference: old HA-integration skeleton (LLM-era) kept out of the public
+# repo. Source for a future NILM custom_component -- not shippable as-is.
+.ha-pattern-ref/
+.git-backup-pre-reset/

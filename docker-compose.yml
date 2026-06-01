@@ -1,0 +1,65 @@
+# Ignis prod stack (Raspberry Pi: lab + inference).
+#
+# The Pi already runs Home Assistant + mosquitto + zigbee2mqtt, so the MQTT
+# broker is NOT a service here -- ha_ingest/publish connect to the existing
+# broker (MQTT_HOST). Training is NEVER a service (native macOS).
+#
+# Services: timescaledb (store) + ha_ingest (HA -> store) + publish (champion
+# inference -> MQTT). The champion model arrives via the models volume
+# (`make ship` rsyncs it). Postgres is published on the LAN for the dev box.
+
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${LOCAL_DB_NAME:-ignis}
+      POSTGRES_USER: ${LOCAL_DB_USER:-ignis}
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-ignis}
+    ports:
+      # Bind address defaults to localhost (safe). On the Pi, set
+      # DB_BIND_ADDR to the LAN IP so the dev box can reach it (LAN only,
+      # never 0.0.0.0). Strong LOCAL_DB_PASSWORD required when exposed.
+      - "${DB_BIND_ADDR:-127.0.0.1}:${LOCAL_DB_PORT:-5432}:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_DB_USER:-ignis} -d ${LOCAL_DB_NAME:-ignis}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ha_ingest:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Inside the compose network, reach the DB by service name.
+      LOCAL_DB_HOST: timescaledb
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+  # Inference + publish: loads champion.keras, disaggregates the latest window,
+  # publishes nilm/disaggregation + nilm/_meta/model. CPU only (TF). Needs a
+  # champion in the models volume -- skips a cycle (warns) until one is shipped.
+  publish:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    # Heavy TF image -- only in prod. Dev `make up` skips it; prod enables it
+    # via `--profile prod` (see `make deploy`).
+    profiles: ["prod"]
+    env_file: .env
+    environment:
+      LOCAL_DB_HOST: timescaledb
+      NILM_MODEL_PATH: /app/models
+    volumes:
+      - ${NILM_MODEL_PATH_HOST:-./models}:/app/models:ro
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+
+volumes:
+  timescale_data:
