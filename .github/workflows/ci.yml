@@ -42,7 +42,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      # GHA layer cache: the heavy deps layer (tensorflow) is reused across runs,
+      # so only a pyproject change rebuilds it.
       - name: Build ha_ingest image
-        run: docker build -t ignis-ingest -f Dockerfile .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: ignis-ingest
+          cache-from: type=gha,scope=ingest
+          cache-to: type=gha,scope=ingest,mode=max
       - name: Build worker image
-        run: docker build -t ignis-worker -f Dockerfile.worker .
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.worker
+          tags: ignis-worker
+          cache-from: type=gha,scope=worker
+          cache-to: type=gha,scope=worker,mode=max
