@@ -18,20 +18,24 @@ This is a reboot: the old Ignis (local-LLM-on-Raspberry-Pi + Lovelace card) was 
 - **`../linkya` is now a FROZEN reference** (NILM knowledge source). Do NOT edit or deploy it. Read it for context only.
 - Old LLM-on-RPi worktree deleted; git kept at commit `457cc1b`.
 
-## Architecture (target)
+## Architecture
+
+All code lives under `src/ignis/` (src layout, `ignis` namespace). Import as
+`from ignis.nilm.config import settings`; run modules as `python -m ignis.<pkg>`.
 
 ```
-ignis/
-├── nilm/         # harvested engine (verbatim — see "Engine" below). NOTE nested nilm/nilm/.
-├── ha_ingest/    # HA -> store: aggregate (NILM input) + per-appliance truth (labels)   [TODO]
-├── eval/         # NILM prediction vs HA truth -> diff/drift per appliance -> retrain req [TODO]
-├── publish/      # outputs: MQTT (portfolio + external) + HA entity bridge              [TODO]
-├── custom_components/ignis/  # HA integration (recover pattern from git 457cc1b)        [TODO]
-├── cards/        # LitElement Lovelace lab cards (recover pattern from git 457cc1b)     [TODO]
-└── backend/ + ops_ui/        # thin API + internal ops console (later)                  [TODO]
+src/ignis/
+├── nilm/         # harvested engine (verbatim). NOTE nested nilm/nilm/ sub-package.
+├── ha_ingest/    # HA -> store: aggregate + per-appliance truth + backfill + compat views
+├── training/     # self-supervised dataset builder + native (CPU/Metal) trainer
+├── eval/         # NILM vs HA metrics (F1/energy) + drift + champion/challenger promote
+├── publish/      # MQTT contract (spec 6.4) + live inference + HA discovery
+└── backend/      # minimal admin console (FastAPI)
 ```
 
-Only `nilm/` exists today. Everything else is to scaffold.
+Still TODO (not yet built): `custom_components/ignis/` HA integration + LitElement
+cards (skeleton kept locally in `.ha-pattern-ref/`, gitignored; recover/rewrite
+for NILM). Engine internal imports stay relative (`from .nilm.models import ...`).
 
 ### Two output surfaces (Ignis has multiple consumers, not one)
 

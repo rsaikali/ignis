@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from eval.drift import DriftPolicy, evaluate_drift
+from ignis.eval.drift import DriftPolicy, evaluate_drift
 
 
 def _errors(*vals: float) -> list[float]:

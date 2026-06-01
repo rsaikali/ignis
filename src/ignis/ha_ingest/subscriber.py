@@ -11,7 +11,7 @@ import asyncio
 import aiomqtt
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 from .entities import parse_value, subscribe_filters, topic_index
 from .store import Store

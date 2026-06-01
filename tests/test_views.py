@@ -8,7 +8,7 @@ against the running stack.
 
 from __future__ import annotations
 
-from ha_ingest.views import _VIEWS, ensure_views
+from ignis.ha_ingest.views import _VIEWS, ensure_views
 
 
 def test_all_views_are_create_or_replace():

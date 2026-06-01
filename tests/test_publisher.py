@@ -6,9 +6,9 @@ import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from publish.contract import DisaggregationSnapshot
-from publish.ha_discovery import publish_discovery
-from publish.mqtt_publisher import MqttPublisher
+from ignis.publish.contract import DisaggregationSnapshot
+from ignis.publish.ha_discovery import publish_discovery
+from ignis.publish.mqtt_publisher import MqttPublisher
 
 TS = datetime(2026, 5, 31, 18, 0, 0, tzinfo=UTC)
 

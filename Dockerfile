@@ -8,10 +8,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-# Install deps first for layer caching. ha_ingest needs only the base deps.
+# ha_ingest needs only the base deps. The package lives under src/ignis.
 COPY pyproject.toml README.md ./
-COPY nilm/ ./nilm/
-COPY ha_ingest/ ./ha_ingest/
+COPY src/ ./src/
 RUN pip install --upgrade pip && pip install .
 
-CMD ["python", "-m", "ha_ingest"]
+CMD ["python", "-m", "ignis.ha_ingest"]

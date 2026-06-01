@@ -19,7 +19,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 from .contract import DisaggregationSnapshot, ModelMeta
 
@@ -61,8 +61,8 @@ def _latest_snapshot(model_path: Path, window_minutes: int) -> DisaggregationSna
     """Disaggregate the most recent window; snapshot its centre point."""
     import numpy as np
 
-    from nilm.nilm.models import Seq2PointMultiOutputModel
-    from training.source import load_aligned
+    from ignis.nilm.nilm.models import Seq2PointMultiOutputModel
+    from ignis.training.source import load_aligned
 
     end = datetime.now(UTC)
     start = end - timedelta(minutes=window_minutes)

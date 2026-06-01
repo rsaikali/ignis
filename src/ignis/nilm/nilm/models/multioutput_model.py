@@ -419,7 +419,7 @@ class Seq2PointMultiOutputModel:
     @staticmethod
     def _load_signature_data_static(signature):
         """Charge les données d'une signature (méthode statique)."""
-        from nilm.database import db_manager
+        from ignis.nilm.database import db_manager
 
         try:
             with db_manager.engine.connect() as conn:
@@ -491,7 +491,7 @@ class Seq2PointMultiOutputModel:
 
     def _load_negative_signatures(self):
         """Charge les signatures négatives depuis la base."""
-        from nilm.database import db_manager
+        from ignis.nilm.database import db_manager
 
         negative_sigs = {}
         try:
@@ -518,7 +518,7 @@ class Seq2PointMultiOutputModel:
 
     def _load_aggregate_data(self, start_time, end_time):
         """Charge les données agrégées pour une période."""
-        from nilm.database import db_manager
+        from ignis.nilm.database import db_manager
 
         try:
             with db_manager.engine.connect() as conn:

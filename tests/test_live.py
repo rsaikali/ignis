@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from publish.live import meta_from_artifacts
+from ignis.publish.live import meta_from_artifacts
 
 REPORT = {
     "model_name": "ignis_gru_20260601T131335",

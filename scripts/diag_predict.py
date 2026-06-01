@@ -13,9 +13,9 @@ from pathlib import Path
 
 import numpy as np
 
-from nilm.config import settings
-from nilm.nilm.models import Seq2PointMultiOutputModel
-from training.source import load_aligned
+from ignis.nilm.config import settings
+from ignis.nilm.nilm.models import Seq2PointMultiOutputModel
+from ignis.training.source import load_aligned
 
 
 def main() -> None:

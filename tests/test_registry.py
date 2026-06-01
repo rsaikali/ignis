@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from backend.registry import discover, get
+from ignis.backend.registry import discover, get
 
 
 def _write_model(d: Path, name: str, report=None, comparison=None, scalers=False):

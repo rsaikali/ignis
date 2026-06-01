@@ -12,7 +12,7 @@ from datetime import datetime
 import psycopg
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 _AGG_TICKS = """
 SELECT DISTINCT (FLOOR(EXTRACT(EPOCH FROM time) / %(step)s) * %(step)s) AS tick

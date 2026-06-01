@@ -14,7 +14,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 from .dataset import AlignedDataset
 from .report import TrainReport, attach_fit_metrics, build_report
@@ -42,7 +42,7 @@ def train(
     """
     import numpy as np
 
-    from nilm.nilm.models import Seq2PointMultiOutputModel
+    from ignis.nilm.nilm.models import Seq2PointMultiOutputModel
 
     model_type = model_type or settings.nilm_model_type
     epochs = epochs or settings.nilm_epochs

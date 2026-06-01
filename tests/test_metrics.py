@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 
-from eval.metrics import (
+from ignis.eval.metrics import (
     ENERGY_ERROR_MAX,
     STATE_F1_MIN,
     ApplianceMetrics,

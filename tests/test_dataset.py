@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from training.dataset import (
+from ignis.training.dataset import (
     AlignedDataset,
     build_aligned,
     floor_bucket,

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from ha_ingest.entities import (
+from ignis.ha_ingest.entities import (
     build_specs,
     parse_value,
     subscribe_filters,
     topic_index,
 )
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 
 def test_specs_cover_aggregate_and_all_plugs():

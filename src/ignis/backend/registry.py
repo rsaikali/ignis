@@ -15,7 +15,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 
 @dataclass(frozen=True)

@@ -5,7 +5,6 @@ services:
   ha_ingest:
     build: .
     volumes:
-      - ./nilm:/app/nilm
-      - ./ha_ingest:/app/ha_ingest
+      - ./src:/app/src
     environment:
       LOGURU_LEVEL: DEBUG

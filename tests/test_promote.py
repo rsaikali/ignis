@@ -6,8 +6,8 @@ import json
 
 import pytest
 
-from eval import promote
-from eval.promote import (
+from ignis.eval import promote
+from ignis.eval.promote import (
     Score,
     latest_challenger,
     maybe_promote,
@@ -18,7 +18,7 @@ from eval.promote import (
 
 @pytest.fixture
 def models(tmp_path, monkeypatch):
-    from nilm.config import settings
+    from ignis.nilm.config import settings
 
     monkeypatch.setattr(settings, "nilm_model_path", str(tmp_path))
     return tmp_path

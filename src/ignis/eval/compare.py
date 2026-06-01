@@ -21,7 +21,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 from .metrics import ApplianceMetrics, evaluate_appliance
 
@@ -91,8 +91,8 @@ def compare(model_path: Path, start: datetime, end: datetime, stride: int = 1) -
     """Disaggregate [start, end) and score predictions vs HA truth."""
     import numpy as np
 
-    from nilm.nilm.models import Seq2PointMultiOutputModel
-    from training.source import load_aligned
+    from ignis.nilm.nilm.models import Seq2PointMultiOutputModel
+    from ignis.training.source import load_aligned
 
     from .truth import load_truth_onoff
 

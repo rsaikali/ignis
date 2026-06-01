@@ -9,9 +9,9 @@ from __future__ import annotations
 import argparse
 from datetime import UTC, datetime, timedelta
 
-from nilm.config import settings
-from training.source import load_aligned
-from training.windows import make_windows
+from ignis.nilm.config import settings
+from ignis.training.source import load_aligned
+from ignis.training.windows import make_windows
 
 
 def main() -> None:

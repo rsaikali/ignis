@@ -16,7 +16,7 @@ from datetime import datetime
 import psycopg
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 from .dataset import AlignedDataset, Sample, build_aligned
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from eval.compare import ComparisonReport, build_comparison, gate_summary
-from eval.metrics import ApplianceMetrics
+from ignis.eval.compare import ComparisonReport, build_comparison, gate_summary
+from ignis.eval.metrics import ApplianceMetrics
 
 START = datetime(2026, 5, 30, tzinfo=UTC)
 END = datetime(2026, 6, 1, tzinfo=UTC)

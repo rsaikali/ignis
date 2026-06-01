@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from publish.contract import (
+from ignis.publish.contract import (
     DISAGGREGATION_TOPIC,
     META_TOPIC,
     DisaggregationSnapshot,

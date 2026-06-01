@@ -18,7 +18,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 from .registry import ModelEntry, discover, get
 

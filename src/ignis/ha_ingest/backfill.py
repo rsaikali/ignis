@@ -26,7 +26,7 @@ from datetime import UTC, datetime, timedelta
 import psycopg
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 from .entities import build_specs, entity_index, parse_value
 

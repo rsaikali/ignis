@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ha_ingest.entities import entity_index, parse_value
+from ignis.ha_ingest.entities import entity_index, parse_value
 
 
 def test_entity_index_keyed_by_entity_id():

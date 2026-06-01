@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from training.windows import activation_stats, balance_windows, make_windows
+from ignis.training.windows import activation_stats, balance_windows, make_windows
 
 
 def test_sequence_length_forced_odd():

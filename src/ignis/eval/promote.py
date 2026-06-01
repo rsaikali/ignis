@@ -20,7 +20,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 CHAMPION_NAME = "champion"
 _SIDECARS = (".metadata.json", ".report.json", ".scalers.pkl", ".comparison.json")

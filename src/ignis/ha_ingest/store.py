@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncpg
 from loguru import logger
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 from .views import ensure_views
 

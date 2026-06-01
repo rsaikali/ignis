@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from training.dataset import AlignedDataset
-from training.report import attach_fit_metrics, build_report
+from ignis.training.dataset import AlignedDataset
+from ignis.training.report import attach_fit_metrics, build_report
 
 START = datetime(2026, 5, 20, tzinfo=UTC)
 END = datetime(2026, 6, 1, tzinfo=UTC)

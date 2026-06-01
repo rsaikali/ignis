@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from eval.truth import _forward_fill_bool
+from ignis.eval.truth import _forward_fill_bool
 
 
 def test_default_off_before_first_change():

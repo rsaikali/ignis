@@ -1,25 +1,38 @@
 # Ignis
 
 NILM/HA lab: per-appliance electrical disaggregation (Seq2Point, TensorFlow/Keras)
-from a Linky aggregate, with Home Assistant as ground-truth source and output surface.
+from a Linky smart-meter aggregate, with Home Assistant as both ground-truth
+source and output surface.
 
-See `CLAUDE.md` for architecture, conventions and the current roadmap.
+Pipeline: HA → `ha_ingest` (MQTT statestream) → TimescaleDB → native training
+(self-supervised from Meross per-appliance truth) → champion/challenger eval vs
+HA (state F1 + energy error) → `publish` (MQTT + honest scores) → portfolio.
 
-## Modules
+## Layout
 
-- `nilm/` — disaggregation engine (harvested from Linky).
-- `ha_ingest/` — HA → TimescaleDB ingestion (MQTT-push via `mqtt_statestream`).
-- `eval/` — NILM vs HA diff/drift → retrain requests. *(TODO)*
-- `publish/` — MQTT + HA entity outputs. *(TODO)*
+All code lives under `src/ignis/`:
+
+- `ignis.nilm` — Seq2Point multi-output engine (GRU/LSTM + attention; harvested
+  from Linkya). Nested `nilm/nilm/` is the original sub-package.
+- `ignis.ha_ingest` — HA → TimescaleDB ingestion, history backfill, compat views.
+- `ignis.training` — self-supervised dataset builder + native trainer.
+- `ignis.eval` — HA-vs-NILM metrics, drift, champion/challenger promotion.
+- `ignis.publish` — MQTT contract (spec 6.4), live inference, HA discovery.
+- `ignis.backend` — minimal admin console (FastAPI).
+
+Docs: `docs/nilm-imbalance.md` (the core ML challenge), `docs/deploy.md`.
 
 ## Quickstart (dev)
 
 ```bash
 uv venv --python 3.12
 uv pip install -e ".[dev,engine]"
-cp .env.example .env        # adjust to your setup
+cp .env.example .env        # adjust to your HA / broker / DB
 make test
 ```
 
-Training runs natively on macOS (Metal); the Raspberry Pi runs inference only.
-See `CLAUDE.md` → "Training is OFF-device".
+Common targets: `make backfill` (replay HA history), `make train`, `make eval`
+(auto-promotes champion), `make ship` (rsync champion to the Pi), `make admin`
+(console at :8001). See `make help`.
+
+Training runs natively (CPU/Metal); the Raspberry Pi runs inference only.

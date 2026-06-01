@@ -7,14 +7,14 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from backend import app as app_module
-from backend.app import app
+from ignis.backend import app as app_module
+from ignis.backend.app import app
 
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     # Point discover() at a temp dir by patching settings.nilm_model_path.
-    from nilm.config import settings
+    from ignis.nilm.config import settings
 
     monkeypatch.setattr(settings, "nilm_model_path", str(tmp_path))
     # registry.discover reads settings at call time, so this is enough.

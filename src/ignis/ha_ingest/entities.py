@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from nilm.config import settings
+from ignis.nilm.config import settings
 
 # Measurement kinds we keep per Meross plug. Maps a logical kind to the entity
 # suffix used by the Meross integration.
