@@ -1,16 +1,20 @@
+# syntax=docker/dockerfile:1
 # ha_ingest image: lightweight, no TensorFlow.
-# The inference worker (engine + TF CPU) gets its own image once the engine is
-# wired to the ha_samples schema -- see docker-compose.yml "worker" profile.
 FROM python:3.12-slim
 
-ENV PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# ha_ingest needs only the base deps. The package lives under src/ignis.
+# --- deps layer: cached unless pyproject changes ----------------------------
 COPY pyproject.toml README.md ./
+RUN --mount=type=cache,target=/root/.cache/pip \
+    mkdir -p src/ignis && touch src/ignis/__init__.py \
+    && pip install --upgrade pip && pip install . \
+    && rm -rf src
+
+# --- code layer: fast -------------------------------------------------------
 COPY src/ ./src/
-RUN pip install --upgrade pip && pip install .
+RUN --mount=type=cache,target=/root/.cache/pip pip install --no-deps .
 
 CMD ["python", "-m", "ignis.ha_ingest"]
