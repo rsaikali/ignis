@@ -62,9 +62,9 @@ Then `make train` / `make eval` use fresh prod HA data; no local backfill.
 
 Branch flow: work on `develop` → PR → merge to `main` → auto-deploy.
 
-## Shipping a model
+## Shipping a model (from the Mac)
 
-Training produces a champion on the Mac. Push it to the Pi:
+Fast dev iteration trains on the Mac, then ships:
 
 ```bash
 make eval        # promotes the best challenger to champion.keras
@@ -72,3 +72,26 @@ make ship        # rsync champion.* to the Pi models volume
 ```
 
 `publish` reloads it on its next cycle (it mounts the models volume read-only).
+
+## On-device nightly retrain (autonomous, no Mac)
+
+The Pi can retrain itself overnight — benchmarked at ~68s/epoch (Pi 4, RAM
+stable, no OOM), so a full ~40min pass is fine off-peak. One pass = train a
+challenger → eval vs HA → promote only if better → prune.
+
+```bash
+make retrain     # = docker compose --profile train run --rm train
+```
+
+The `train` service mounts the models volume READ-WRITE (publish stays
+read-only) and exits after one pass. `publish` picks up a new champion on its
+next cycle, no restart.
+
+Schedule it with cron on the Pi (a flock guard prevents overlap):
+
+```cron
+17 3 * * *  /home/<user>/ignis/scripts/cron-retrain.sh >> /home/<user>/ignis/retrain.log 2>&1
+```
+
+This is the semi-open loop closed on-device: detect drift / retrain / ship the
+winner all on the Pi. The Mac stays optional (fast experimentation only).
