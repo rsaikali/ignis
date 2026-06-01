@@ -148,6 +148,31 @@ def api_models() -> JSONResponse:
     )
 
 
+@app.get("/api/models/history")
+def api_models_history(limit: int = 500) -> JSONResponse:
+    """Evolution curve: one point per logged retrain (portfolio surface C)."""
+    from .dbapi import models_history
+
+    return JSONResponse(models_history(limit=limit))
+
+
+@app.get("/api/truth/recent")
+def api_truth_recent(window: str = "15m") -> JSONResponse:
+    """Latest per-appliance HA truth for the live NILM-vs-real diff (surface A)."""
+    from .dbapi import truth_recent
+
+    return JSONResponse(truth_recent(_parse_window(window)))
+
+
+def _parse_window(window: str) -> int:
+    """Parse '15m' / '30s' / '2h' -> seconds. Defaults to 900s on bad input."""
+    units = {"s": 1, "m": 60, "h": 3600}
+    try:
+        return int(window[:-1]) * units[window[-1]]
+    except (ValueError, KeyError, IndexError):
+        return 900
+
+
 @app.get("/api/health")
 def health() -> dict:
     return {"ok": True, "models_dir": str(Path(settings.nilm_model_path)), "models": len(discover())}
