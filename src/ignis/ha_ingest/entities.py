@@ -9,7 +9,10 @@ The Meross mss315 plugs expose, per appliance ``<app>``::
     sensor.<app>_<tag>_energy_kwh_main_channel   # cumulative -> energy gate
     sensor.<app>_<tag>_current_a_main_channel    # A
     sensor.<app>_<tag>_voltage_v_main_channel    # V
-    switch.<app>_<tag>_main_channel              # ON/OFF truth
+
+The ``switch.*`` entity is intentionally ignored: the plugs stay powered (used
+only to meter), so the switch state carries no activation signal. ON/OFF truth
+is derived from measured ``power_w`` instead.
 
 The aggregate NILM input is a single sensor (Linky apparent power, VA).
 """
@@ -36,7 +39,7 @@ class EntitySpec:
 
     entity_id: str  # e.g. "sensor.four_mss315_power_w_main_channel"
     appliance: str | None  # "four" ... ; None for the aggregate
-    kind: str  # "aggregate" | "power_w" | ... | "switch"
+    kind: str  # "aggregate" | "power_w" | "energy_kwh" | "current_a" | "voltage_v"
 
     @property
     def domain(self) -> str:
@@ -54,10 +57,6 @@ def _meross_sensor(app: str, suffix: str, tag: str) -> str:
     return f"sensor.{app}_{tag}_{suffix}_main_channel"
 
 
-def _meross_switch(app: str, tag: str) -> str:
-    return f"switch.{app}_{tag}_main_channel"
-
-
 def build_specs() -> list[EntitySpec]:
     """All entities to ingest, derived from settings."""
     tag = settings.meross_device_tag
@@ -67,7 +66,6 @@ def build_specs() -> list[EntitySpec]:
     for app in settings.nilm_appliances:
         for kind, suffix in MEROSS_SENSOR_KINDS.items():
             specs.append(EntitySpec(_meross_sensor(app, suffix, tag), app, kind))
-        specs.append(EntitySpec(_meross_switch(app, tag), app, "switch"))
     return specs
 
 
@@ -92,18 +90,9 @@ NON_NUMERIC = {"unavailable", "unknown", "none", ""}
 
 
 def parse_value(spec: EntitySpec, payload: str) -> float | None:
-    """Convert a raw statestream payload to a float, or None if not storable.
-
-    Switches map on->1.0 / off->0.0; sensors parse as float.
-    """
+    """Convert a raw statestream payload to a float, or None if not storable."""
     s = payload.strip().lower()
     if s in NON_NUMERIC:
-        return None
-    if spec.kind == "switch":
-        if s in ("on", "true", "1"):
-            return 1.0
-        if s in ("off", "false", "0"):
-            return 0.0
         return None
     try:
         return float(s)

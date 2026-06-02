@@ -52,18 +52,19 @@ def test_energy_error_zero_truth_nonzero_pred_is_inf():
     assert energy_error([0, 0], [1, 0]) == float("inf")
 
 
-def test_evaluate_appliance_uses_switch_truth():
-    # pred matches power but switch says OFF the whole time -> some FP.
+def test_evaluate_appliance_derives_onoff_from_power():
+    # Truth and prediction ON/OFF both come from power vs threshold.
+    # tick 0: truth ON (100>15), pred OFF (0) -> fn. tick 1: both ON -> tp.
     m = evaluate_appliance(
         "four",
         truth_w=[100, 100],
-        pred_w=[100, 100],
+        pred_w=[0, 100],
         threshold=15,
-        truth_on=[False, False],
     )
     assert m.appliance == "four"
     assert m.n_samples == 2
-    assert m.state_f1 == 0.0  # pred ON, truth (switch) OFF
+    # tp=1, fp=0, fn=1 -> precision=1, recall=0.5 -> F1=2/3
+    assert math.isclose(m.state_f1, 2 / 3)
 
 
 def test_gate_pass_and_fail():

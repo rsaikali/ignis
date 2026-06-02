@@ -13,10 +13,11 @@ from ignis.nilm.config import settings
 
 def test_specs_cover_aggregate_and_all_plugs():
     specs = build_specs()
-    # 1 aggregate + per appliance (4 sensors + 1 switch).
-    expected = 1 + len(settings.nilm_appliances) * 5
+    # 1 aggregate + per appliance (4 sensors; switch entity intentionally ignored).
+    expected = 1 + len(settings.nilm_appliances) * 4
     assert len(specs) == expected
     assert any(s.kind == "aggregate" for s in specs)
+    assert not any(s.kind == "switch" for s in specs)
     assert specs[0].entity_id == settings.ha_aggregate_entity
 
 
@@ -37,17 +38,11 @@ def test_meross_power_entity_built_correctly():
     assert idx[topic].kind == "power_w"
 
 
-def test_subscribe_filters_cover_sensor_and_switch():
+def test_subscribe_filters_cover_sensor_only():
     filters = subscribe_filters("statestream")
     assert "statestream/sensor/+/state" in filters
-    assert "statestream/switch/+/state" in filters
-
-
-def test_parse_value_switch():
-    sw = next(s for s in build_specs() if s.kind == "switch")
-    assert parse_value(sw, "on") == 1.0
-    assert parse_value(sw, "off") == 0.0
-    assert parse_value(sw, "unavailable") is None
+    # Switch entities are not ingested -> no switch filter.
+    assert "statestream/switch/+/state" not in filters
 
 
 def test_parse_value_sensor():

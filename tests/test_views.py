@@ -32,10 +32,9 @@ def test_appliance_power_filters_power_w():
     assert "appliance IS NOT NULL" in ddl
 
 
-def test_appliance_onoff_maps_switch_to_bool():
-    ddl = next(d for d in _VIEWS if "appliance_onoff" in d)
-    assert "value > 0.5" in ddl
-    assert "kind = 'switch'" in ddl
+def test_no_switch_based_view():
+    # ON/OFF truth is derived from power, never the switch entity.
+    assert not any("kind = 'switch'" in d for d in _VIEWS)
 
 
 async def test_ensure_views_executes_every_ddl():
@@ -46,5 +45,6 @@ async def test_ensure_views_executes_every_ddl():
             executed.append(ddl)
 
     await ensure_views(FakeConn())
-    assert executed == list(_VIEWS)
-    assert len(executed) == 3
+    # Retired views are dropped first, then the live views are (re)created.
+    assert executed[-len(_VIEWS) :] == list(_VIEWS)
+    assert any("DROP VIEW IF EXISTS appliance_onoff" in d for d in executed)

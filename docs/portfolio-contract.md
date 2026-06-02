@@ -111,7 +111,7 @@ oven is hard and here's the plan". The latter signals maturity.
   sidecars (pruned). A `model_runs` table in TimescaleDB is the right home.
 - **Backend API** endpoints above (`backend/` FastAPI already exists with the
   registry; add `/api/models/history` from `model_runs` and `/api/truth/recent`
-  from the `appliance_power`/`appliance_onoff` views).
+  from the `appliance_power` view).
 
 **Status:** the `model_runs` table + `log_run` (written by the nightly retrain)
 and both API endpoints exist. History is empty until the first cron retrain logs
@@ -136,7 +136,7 @@ MQTT (surfaces A + B) is live now regardless. Surface C needs one of the above.
 - Broker: `<pi-lan-ip>:1883`, auth required. Topics `nilm/disaggregation`,
   `nilm/_meta/model` (both retained).
 - DB (if direct): `<pi-lan-ip>:5432`, db `ignis`. Views `appliance_power`,
-  `appliance_onoff`, `linky_realtime`; table `model_runs`.
+  `linky_realtime`; table `model_runs`.
 - API (if backend service): `/api/models`, `/api/models/history`,
   `/api/truth/recent?window=15m`, `/api/health`.
 - Appliance keys: `four, lave_linge, lave_vaisselle, pc, television, smart_plug`.

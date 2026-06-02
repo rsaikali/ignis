@@ -94,8 +94,6 @@ def compare(model_path: Path, start: datetime, end: datetime, stride: int = 1) -
     from ignis.nilm.nilm.models import Seq2PointMultiOutputModel
     from ignis.training.source import load_aligned
 
-    from .truth import load_truth_onoff
-
     threshold = settings.nilm_min_power_threshold
     grid = settings.ingest_grid_seconds
 
@@ -115,14 +113,11 @@ def compare(model_path: Path, start: datetime, end: datetime, stride: int = 1) -
     agg = np.asarray(dataset.aggregate, dtype=np.float32)
     preds = model.predict(agg, stride=stride)  # {appliance_id: signal aligned to agg}
 
-    onoff = load_truth_onoff(start, end, grid)  # {app: [bool, ...]} aligned to grid
-
     per_appliance: dict[str, ApplianceMetrics] = {}
     for idx, app in enumerate(model.appliance_names):
         pred_w = list(preds[model.appliance_ids[idx]])
         truth_w = dataset.appliances.get(app, [])
-        truth_on = onoff.get(app)
-        per_appliance[app] = evaluate_appliance(app, truth_w, pred_w, threshold, truth_on=truth_on)
+        per_appliance[app] = evaluate_appliance(app, truth_w, pred_w, threshold)
 
     report = build_comparison(model_path.stem, start, end, grid, threshold, per_appliance)
     _write(model_path, report)

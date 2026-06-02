@@ -18,17 +18,10 @@ ORDER BY logged_at ASC
 LIMIT %(limit)s;
 """
 
-# Latest value per appliance within the window, from the truth views.
+# Latest value per appliance within the window, from the power truth view.
 _TRUTH_POWER_SQL = """
 SELECT DISTINCT ON (appliance) appliance, power_w
 FROM appliance_power
-WHERE time >= %(since)s
-ORDER BY appliance, time DESC;
-"""
-
-_TRUTH_ONOFF_SQL = """
-SELECT DISTINCT ON (appliance) appliance, is_on
-FROM appliance_onoff
 WHERE time >= %(since)s
 ORDER BY appliance, time DESC;
 """
@@ -89,17 +82,19 @@ def latest_disaggregation() -> dict | None:
 
 
 def truth_recent(window_seconds: int) -> dict:
-    """Latest per-appliance HA truth (power + on/off) within the window."""
+    """Latest per-appliance HA truth (power + on/off) within the window.
+
+    ON/OFF is derived from measured power vs the NILM threshold, not the Meross
+    switch entity (the plugs stay powered, used only to meter).
+    """
     import psycopg
 
     since = datetime.now(UTC) - timedelta(seconds=window_seconds)
+    threshold = settings.nilm_min_power_threshold
     power: dict[str, float] = {}
-    onoff: dict[str, bool] = {}
     with psycopg.connect(settings.database_url) as conn:
         with conn.cursor() as cur:
             cur.execute(_TRUTH_POWER_SQL, {"since": since})
             power = {app: float(w) for app, w in cur.fetchall()}
-            cur.execute(_TRUTH_ONOFF_SQL, {"since": since})
-            onoff = {app: bool(v) for app, v in cur.fetchall()}
-    appliances = {app: {"power_w": power.get(app), "on": onoff.get(app)} for app in set(power) | set(onoff)}
+    appliances = {app: {"power_w": w, "on": w > threshold} for app, w in power.items()}
     return {"window_seconds": window_seconds, "appliances": appliances}

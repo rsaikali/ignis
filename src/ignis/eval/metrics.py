@@ -5,8 +5,9 @@ numpy/pandas dependency so this runs anywhere, including the Pi.
 
 Definitions
 -----------
-- ON/OFF state: power above a threshold (W). Truth ON/OFF may instead come
-  directly from the Meross ``switch.*_main_channel`` entity when available.
+- ON/OFF state: power above a threshold (W), for both truth and prediction.
+  The Meross plugs stay powered (used only to meter), so their switch entity is
+  not a usable activation signal -- ON/OFF is derived from measured power.
 - State F1: F1 of the ON class (prediction ON vs truth ON).
 - Energy error: ``|sum(pred) - sum(truth)| / sum(truth)``. On a uniform grid
   the per-sample dt cancels, so summing power is proportional to energy.
@@ -81,15 +82,12 @@ def evaluate_appliance(
     truth_w: Sequence[float],
     pred_w: Sequence[float],
     threshold: float,
-    truth_on: Sequence[bool] | None = None,
 ) -> ApplianceMetrics:
     """Compute metrics for one appliance.
 
-    ``truth_on`` (e.g. from the Meross switch entity) overrides the
-    power-threshold derivation of the truth ON/OFF state when provided.
-    Prediction ON/OFF is always derived from ``pred_w`` via ``threshold``.
+    Truth and prediction ON/OFF are both derived from power via ``threshold``.
     """
-    truth_state = list(truth_on) if truth_on is not None else on_off(truth_w, threshold)
+    truth_state = on_off(truth_w, threshold)
     pred_state = on_off(pred_w, threshold)
     return ApplianceMetrics(
         appliance=appliance,
