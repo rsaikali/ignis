@@ -55,12 +55,23 @@ Then `make train` / `make eval` use fresh prod HA data; no local backfill.
 
 ## CI/CD
 
-- **CI** (`.github/workflows/ci.yml`) on `develop` + PRs: ruff lint+format,
-  pytest, docker build (both images). Runs on `ubuntu-latest`.
-- **CD** (`.github/workflows/cd.yml`) on `main`: the Pi runner pulls `main` into
-  `~/ignis` and runs `make deploy` (`docker compose --profile prod up -d --build`).
+- **CI** (`.github/workflows/ci.yml`) on push to `develop` + `main`, and on PRs
+  to either: ruff lint+format, pytest, docker build (both images). Runs on
+  `ubuntu-latest`.
+- **CD** (`.github/workflows/cd.yml`) is **gated on CI**: it triggers via
+  `workflow_run` only when CI completes **successfully on `main`**, then the Pi
+  runner pulls `main` into `~/ignis` and runs `make deploy`
+  (`docker compose --profile prod up -d --build`). A red CI never deploys.
+  Manual `workflow_dispatch` bypasses the gate on purpose (emergency deploy).
 
-Branch flow: work on `develop` → PR → merge to `main` → auto-deploy.
+`main` is **protected**: PR required before merge (no direct push), both CI
+checks (`Ruff + pytest`, `Docker build (ingest + worker)`) required and strict
+(branch up to date). Admins are **not** enforced — the owner can force-merge in
+an emergency.
+
+Branch flow: work on `develop` → push → PR to `main` → CI green → merge → CI on
+`main` → auto-deploy. `make ship` (model `.keras` → Pi) is out of band (rsync,
+no git), so shipping a model does not go through this flow.
 
 ## Shipping a model (from the Mac)
 
