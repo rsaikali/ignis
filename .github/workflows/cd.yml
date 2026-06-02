@@ -1,7 +1,11 @@
 name: CD
 
+# Deploy only after CI passes on main. CI runs on the main push; this fires on
+# its successful completion. Manual dispatch bypasses the gate intentionally.
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch:
 
@@ -9,6 +13,7 @@ jobs:
   deploy:
     name: Deploy to Raspberry Pi
     runs-on: [self-hosted, linux, arm64]
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       # Deploy from a persistent clone on the Pi that holds .env (secrets +
       # host config, never in git) and the models volume. Provision once:
